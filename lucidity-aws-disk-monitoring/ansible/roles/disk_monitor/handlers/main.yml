@@ -1,0 +1,12 @@
+---
+- name: restart cloudwatch agent
+  ansible.builtin.command: >-
+    /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl
+    -a fetch-config -m ec2 -c file:{{ cloudwatch_config_linux }} -s
+  when: ansible_os_family != 'Windows'
+
+- name: restart cloudwatch agent
+  ansible.windows.win_shell: >-
+    & 'C:\Program Files\Amazon\AmazonCloudWatchAgent\amazon-cloudwatch-agent-ctl.ps1'
+    -a fetch-config -m ec2 -c file:{{ cloudwatch_config_windows }} -s
+  when: ansible_os_family == 'Windows'

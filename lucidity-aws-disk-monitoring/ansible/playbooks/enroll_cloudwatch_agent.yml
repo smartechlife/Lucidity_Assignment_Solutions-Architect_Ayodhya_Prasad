@@ -1,0 +1,7 @@
+---
+- name: Enroll EC2 instances into continuous disk monitoring
+  hosts: all
+  gather_facts: true
+  become: true
+  roles:
+    - role: disk_monitor

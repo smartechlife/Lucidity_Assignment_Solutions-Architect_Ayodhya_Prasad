@@ -1,0 +1,44 @@
+---
+- name: One-shot disk collection through Ansible + SSM
+  hosts: all
+  gather_facts: false
+  become: true
+  tasks:
+    - name: Collect Linux disk usage
+      ansible.builtin.shell: |
+        set -o pipefail
+        df -P -x tmpfs -x devtmpfs | awk 'NR==1 || $5+0 >= 0 {print}'
+      args:
+        executable: /bin/bash
+      register: linux_df
+      changed_when: false
+      failed_when: false
+      when: ansible_os_family != 'Windows'
+
+    - name: Collect Windows disk usage
+      ansible.windows.win_shell: |
+        Get-CimInstance Win32_LogicalDisk -Filter "DriveType=3" |
+          Select-Object DeviceID,Size,FreeSpace |
+          ConvertTo-Json -Compress
+      register: windows_df
+      changed_when: false
+      failed_when: false
+      when: ansible_os_family == 'Windows'
+
+    - name: Display collected Linux result
+      ansible.builtin.debug:
+        msg:
+          account: "{{ aws_account_id }}"
+          region: "{{ aws_region }}"
+          instance_id: "{{ ec2_instance_id }}"
+          disk: "{{ linux_df.stdout }}"
+      when: ansible_os_family != 'Windows'
+
+    - name: Display collected Windows result
+      ansible.builtin.debug:
+        msg:
+          account: "{{ aws_account_id }}"
+          region: "{{ aws_region }}"
+          instance_id: "{{ ec2_instance_id }}"
+          disk: "{{ windows_df.stdout }}"
+      when: ansible_os_family == 'Windows'

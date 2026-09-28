@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Least-privilege cross-account role used by the central Ansible disk-monitoring controller.
+
+Parameters:
+  MonitoringAccountId:
+    Type: String
+    AllowedPattern: '^\d{12}$'
+    Description: AWS account ID hosting the Ansible controller.
+  ExternalId:
+    Type: String
+    NoEcho: true
+    Description: Optional external ID agreed with the monitoring platform/controller.
+
+Resources:
+  DiskMonitoringExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: DiskMonitoringExecutionRole
+      Description: Cross-account role for centralized EC2 disk monitoring.
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowMonitoringAccount
+            Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${MonitoringAccountId}:root
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                sts:ExternalId: !Ref ExternalId
+      Policies:
+        - PolicyName: DiskMonitoringController
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: DescribeEc2
+                Effect: Allow
+                Action:
+                  - ec2:DescribeInstances
+                  - ec2:DescribeTags
+                Resource: '*'
+              - Sid: ReadSsmInventory
+                Effect: Allow
+                Action:
+                  - ssm:DescribeInstanceInformation
+                Resource: '*'
+              - Sid: SessionManager
+                Effect: Allow
+                Action:
+                  - ssm:StartSession
+                  - ssm:TerminateSession
+                  - ssm:ResumeSession
+                Resource: '*'
+
+Outputs:
+  RoleArn:
+    Value: !GetAtt DiskMonitoringExecutionRole.Arn

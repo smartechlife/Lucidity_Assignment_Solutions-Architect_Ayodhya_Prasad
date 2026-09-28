@@ -1,0 +1,22 @@
+{
+  "agent": {
+    "metrics_collection_interval": {{ cloudwatch_interval_seconds }}
+  },
+  "metrics": {
+    "namespace": "{{ cloudwatch_namespace }}",
+    "append_dimensions": {
+      "InstanceId": "${aws:InstanceId}",
+      "InstanceType": "${aws:InstanceType}",
+      "AccountId": "{{ aws_account_id }}",
+      "Region": "{{ aws_region }}"
+    },
+    "metrics_collected": {
+      "LogicalDisk": {
+        "resources": ["*"],
+        "measurement": [
+          {"name": "% Free Space", "rename": "disk_free_percent", "unit": "Percent"}
+        ]
+      }
+    }
+  }
+}

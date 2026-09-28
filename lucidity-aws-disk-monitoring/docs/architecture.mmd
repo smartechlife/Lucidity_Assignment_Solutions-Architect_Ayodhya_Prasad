@@ -1,0 +1,21 @@
+flowchart LR
+  ORG[AWS Organizations] --> OUs[Production / Staging / Sandbox OUs]
+  OUs --> ACCT1[Member Account A]
+  OUs --> ACCT2[Member Account B]
+  OUs --> ACCTN[Member Account N]
+  ORG --> SS[CloudFormation StackSet<br/>service-managed + auto deployment]
+  SS --> ROLE[DiskMonitoringExecutionRole in member accounts]
+
+  CTRL[Monitoring / Tooling Account<br/>Ansible Controller] -->|ListAccounts| ORG
+  CTRL -->|STS AssumeRole| ROLE
+  CTRL -->|SSM Session Manager| VM1[Linux EC2]
+  CTRL -->|SSM Session Manager| VM2[Windows EC2]
+  VM1 --> CWA1[CloudWatch Agent]
+  VM2 --> CWA2[CloudWatch Agent]
+  CWA1 --> CW[CloudWatch Enterprise/Disk]
+  CWA2 --> CW
+  CW --> DASH[Central Dashboards]
+  CW --> ALARM[80/90/95% Alarms]
+  ALARM --> SNS[SNS / Ticket / ChatOps]
+  CTRL --> S3[S3 private encrypted transfer bucket]
+  KMS[KMS CMK] --> S3

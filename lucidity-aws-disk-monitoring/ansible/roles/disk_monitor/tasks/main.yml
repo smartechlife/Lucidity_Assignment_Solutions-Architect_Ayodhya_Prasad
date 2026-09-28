@@ -1,0 +1,40 @@
+---
+- name: Install CloudWatch Agent on Amazon Linux / RHEL / Fedora family
+  ansible.builtin.package:
+    name: "{{ cloudwatch_agent_package_linux }}"
+    state: present
+  when: ansible_os_family in ['RedHat', 'Amazon']
+
+- name: Install CloudWatch Agent on Debian family
+  ansible.builtin.apt:
+    name: amazon-cloudwatch-agent
+    state: present
+    update_cache: true
+  when: ansible_os_family == 'Debian'
+
+- name: Configure CloudWatch Agent on Linux
+  ansible.builtin.template:
+    src: cloudwatch-linux.json.j2
+    dest: "{{ cloudwatch_config_linux }}"
+    mode: '0644'
+  when: ansible_os_family != 'Windows'
+  notify: restart cloudwatch agent
+
+- name: Download CloudWatch Agent installer on Windows
+  ansible.windows.win_get_url:
+    url: https://amazoncloudwatch-agent.s3.amazonaws.com/windows/amd64/latest/amazon-cloudwatch-agent.msi
+    dest: C:\Windows\Temp\amazon-cloudwatch-agent.msi
+  when: ansible_os_family == 'Windows'
+
+- name: Install CloudWatch Agent on Windows
+  ansible.windows.win_package:
+    path: C:\Windows\Temp\amazon-cloudwatch-agent.msi
+    state: present
+  when: ansible_os_family == 'Windows'
+
+- name: Configure CloudWatch Agent on Windows
+  ansible.windows.win_template:
+    src: cloudwatch-windows.json.j2
+    dest: "{{ cloudwatch_config_windows }}"
+  when: ansible_os_family == 'Windows'
+  notify: restart cloudwatch agent

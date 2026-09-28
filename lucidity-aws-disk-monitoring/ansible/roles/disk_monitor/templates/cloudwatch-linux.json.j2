@@ -1,0 +1,22 @@
+{
+  "agent": {
+    "metrics_collection_interval": {{ cloudwatch_interval_seconds }},
+    "run_as_user": "root"
+  },
+  "metrics": {
+    "namespace": "{{ cloudwatch_namespace }}",
+    "append_dimensions": {
+      "InstanceId": "${aws:InstanceId}",
+      "InstanceType": "${aws:InstanceType}",
+      "AccountId": "{{ aws_account_id }}",
+      "Region": "{{ aws_region }}"
+    },
+    "metrics_collected": {
+      "disk": {
+        "resources": ["*"],
+        "measurement": ["used_percent"],
+        "ignore_file_system_types": ["sysfs", "devtmpfs", "tmpfs", "proc", "squashfs"]
+      }
+    }
+  }
+}

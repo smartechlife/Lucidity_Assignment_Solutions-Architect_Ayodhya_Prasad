@@ -1,0 +1,6 @@
+---
+cloudwatch_agent_package_linux: amazon-cloudwatch-agent
+cloudwatch_namespace: Enterprise/Disk
+cloudwatch_interval_seconds: 60
+cloudwatch_config_linux: /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+cloudwatch_config_windows: 'C:\ProgramData\Amazon\AmazonCloudWatchAgent\amazon-cloudwatch-agent.json'
